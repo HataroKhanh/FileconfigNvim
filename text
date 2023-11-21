@@ -1,0 +1,53 @@
+function ConvertFile()
+    local file_path = vim.api.nvim_buf_get_name(0) -- Get the current file path
+    local file_extension = file_path:match("^.+(%..+)$") -- Extract the file extension
+    local txt_path = file_path:gsub("%.(pdf|docx)$", ".txt") -- Replace .pdf or .docx with .txt for the output file
+
+    if file_extension == ".pdf" then
+        -- For PDF files, use pdftotext
+        vim.fn.system("pdftotext '" .. file_path .. "' '" .. txt_path .. "'")
+        print("Converted PDF to text: " .. txt_path)
+        vim.cmd("term bat '" .. txt_path .. "'")
+    elseif file_extension == ".docx" then
+        -- For DOCX files, use pandoc
+        vim.fn.system("pandoc -f docx '" .. file_path .. "' -o '" .. txt_path .. "'")
+        print("Converted DOCX to text: " .. txt_path)
+        vim.cmd("term bat '" .. txt_path .. "'")
+    else
+        -- For other file types, just open in bat
+        vim.cmd("term bat %")
+    end
+end
+
+-- Key mapping
+vim.api.nvim_set_keymap('n', '<Space>pP', ':lua ConvertFile()<CR>', { noremap = true, silent = true })
+
+
+-- Define a function to compile and run C++ code.
+function RunCpp()
+  -- Save the current file.
+  vim.cmd("make %<")
+  vim.cmd("term %<")
+end
+
+-- Create a key mapping for running C++ code.
+vim.api.nvim_set_keymap('n', '<Space>Rc', ':lua RunCpp()<CR>', { noremap = true, silent = true })
+
+
+function RunPython()
+  vim.cmd("w") -- Lưu file hiện tại
+  vim.cmd("terminal python3 %") -- Chạy file Python trong terminal
+end
+vim.api.nvim_set_keymap('n', '<Space>Rp', ':lua RunPython()<CR>', { noremap = true, silent = true })
+
+
+local cmp_nvim_lsp = require "cmp_nvim_lsp"
+
+require("lspconfig").clangd.setup {
+  on_attach = on_attach,
+  capabilities = cmp_nvim_lsp.default_capabilities(),
+  cmd = {
+    "clangd",
+    "--offset-encoding=utf-16",
+  },
+}
